@@ -155,6 +155,15 @@ def push_to_wechat(title, content_md):
 
 
 def main():
+    # 强制测试模式：在 GitHub Actions 里手动跑的时候，把环境变量 FORCE_TEST_PUSH 设成 "1"
+    # 就会不管有没有抓到新新闻，都先发一条测试消息，方便确认 GitHub → PushPlus → 微信 这条链路是否打通
+    if os.environ.get("FORCE_TEST_PUSH") == "1":
+        push_to_wechat(
+            "GitHub Actions 测试推送",
+            f"这是一条测试消息，发送时间：{datetime.now(timezone.utc).astimezone().strftime('%Y-%m-%d %H:%M:%S')}\n\n如果你在微信收到了这条消息，说明 GitHub Actions → PushPlus → 微信 这条链路完全打通了。"
+        )
+        return
+
     seen = load_seen()
     matched, seen = fetch_matches(seen)
     save_seen(seen)
