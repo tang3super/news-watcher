@@ -1,0 +1,36 @@
+name: News Watcher
+
+on:
+  schedule:
+    # 每 15 分钟跑一次（UTC 时间，GitHub Actions 免费额度对个人仓库很宽裕）
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}   # 允许在 GitHub 网页上手动点一下立即跑一次，方便测试
+
+permissions:
+  contents: write   # 需要写权限，用来把 seen.json 的更新提交回仓库
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: 安装依赖
+        run: pip install feedparser requests
+
+      - name: 运行监控脚本
+        env:
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+        run: python watch_news.py
+
+      - name: 保存已推送记录（避免重复推送）
+        run: |
+          git config user.name "news-watcher-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add seen.json
+          git diff --staged --quiet || git commit -m "update seen.json"
+          git push
