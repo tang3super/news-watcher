@@ -62,6 +62,7 @@ FEEDS = INTL_FEEDS + CN_FEEDS
 
 STATE_FILE = os.path.join(os.path.dirname(__file__), "seen.json")
 PUSHPLUS_TOKEN = os.environ.get("PUSHPLUS_TOKEN", "")
+PUSHPLUS_TOPIC = os.environ.get("PUSHPLUS_TOPIC", "")   # 群组编码，留空则只推给自己（一对一），填了就变成群发（一对多）
 PUSHPLUS_URL = "http://www.pushplus.plus/send"
 
 
@@ -145,12 +146,15 @@ def push_to_wechat(title, content_md):
         print("[warn] 未设置 PUSHPLUS_TOKEN，跳过推送，仅打印结果：")
         print(content_md)
         return
-    resp = requests.post(PUSHPLUS_URL, json={
+    payload = {
         "token": PUSHPLUS_TOKEN,
         "title": title,
         "content": content_md,
         "template": "markdown",
-    }, timeout=15)
+    }
+    if PUSHPLUS_TOPIC:
+        payload["topic"] = PUSHPLUS_TOPIC   # 带上群组编码 → 一对多群发；不带就是一对一发给自己
+    resp = requests.post(PUSHPLUS_URL, json=payload, timeout=15)
     print("[push] 状态:", resp.status_code, resp.text[:200])
 
 
