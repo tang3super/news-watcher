@@ -26,18 +26,44 @@ jobs:
           python-version: "3.11"
 
       - name: 安装依赖
-        run: pip install feedparser requests
+        run: pip install feedparser requests pyyaml tencentcloud-sdk-python-common==3.0.1214 tencentcloud-sdk-python-tmt==3.0.1214
 
       - name: 运行监控脚本
         env:
           PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
+          PUSHPLUS_TOPIC: ${{ secrets.PUSHPLUS_TOPIC }}
+          TCLOUD_SECRET_ID: ${{ secrets.TCLOUD_SECRET_ID }}
+          TCLOUD_SECRET_KEY: ${{ secrets.TCLOUD_SECRET_KEY }}
           FORCE_TEST_PUSH: ${{ github.event.inputs.force_test_push == 'true' && '1' || '0' }}
         run: python watch_news.py
 
-      - name: 保存已推送记录（避免重复推送）
+      - name: 保存状态并提交聚合网页
         run: |
           git config user.name "news-watcher-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add seen.json
-          git diff --staged --quiet || git commit -m "update seen.json"
+          git add seen.json digest_store.json docs/index.html
+          git diff --staged --quiet || git commit -m "update digest"
           git push
+
+      - name: 同步「新闻监控」文章到 tang3super.github.io（宏观交易板块）
+        if: hashFiles('site_news_digest.md') != ''
+        env:
+          SITE_REPO_TOKEN: ${{ secrets.SITE_REPO_TOKEN }}
+        run: |
+          if [ -z "$SITE_REPO_TOKEN" ]; then
+            echo "[warn] 未设置 SITE_REPO_TOKEN，跳过站点同步。"
+            exit 0
+          fi
+          git clone --depth=1 "https://x-access-token:${SITE_REPO_TOKEN}@github.com/tang3super/tang3super.github.io.git" site_repo
+          mkdir -p site_repo/_macro_trade
+          cp site_news_digest.md site_repo/_macro_trade/news-digest.md
+          cd site_repo
+          git config user.name "news-watcher-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add _macro_trade/news-digest.md
+          if ! git diff --staged --quiet; then
+            git commit -m "sync news-digest article"
+            git push
+          else
+            echo "[info] 新闻监控文章内容无变化，跳过站点仓库提交。"
+          fi
