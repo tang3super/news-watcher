@@ -2,8 +2,8 @@ name: News Watcher
 
 on:
   schedule:
-    # 每 15 分钟跑一次（UTC 时间，GitHub Actions 免费额度对个人仓库很宽裕）
-    - cron: "*/15 * * * *"
+    # 每 5 分钟跑一次（UTC 时间，仓库已改为 public，Actions 分钟数不限）
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       force_test_push:
