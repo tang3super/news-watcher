@@ -87,7 +87,7 @@ FEEDS = INTL_FEEDS + CN_FEEDS
 # ============ 3. 聚合页面参数 ============
 MAX_ITEMS_PER_TOPIC = 80      # 每个分类最多展示多少条，本周内正常情况下不会碰到这个上限
 BEIJING_TZ = timezone(timedelta(hours=8))
-REFRESH_NOTE = "每 15 分钟自动刷新"
+REFRESH_NOTE = "每 5 分钟自动刷新"
 
 # ============ 4. 翻译参数（腾讯云机器翻译 TMT） ============
 TCLOUD_SECRET_ID = os.environ.get("TCLOUD_SECRET_ID", "")

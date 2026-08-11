@@ -2,9 +2,9 @@ name: News Watcher
 
 on:
   schedule:
-    # 每 15 分钟跑一次（UTC 时间，仓库已改为 public，Actions 分钟数不限）
-    # 之前是 */5，push 太频繁会和 GitHub Pages 的构建队列打架，导致 news-digest 页面时不时 404
-    - cron: "*/15 * * * *"
+    # 每 5 分钟跑一次（UTC 时间，仓库已改为 public，Actions 分钟数不限）
+    # 用于原油/黄金等新闻敏感性交易，时效性优先；news-digest 404 的真正原因是缺 permalink 字段，已在 watch_news.py 修复，跟频率无关
+    - cron: "*/5 * * * *"
   workflow_dispatch:
     inputs:
       force_test_push:
