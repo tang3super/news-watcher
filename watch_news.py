@@ -434,6 +434,7 @@ def build_site_front_matter(store, week_label, today_str):
 
     return {
         "layout": "news-digest",
+        "permalink": "/macro-trade/news-digest/",
         "title": "新闻监控",
         "date": today_str,
         "summary": f"{week_label}监控",

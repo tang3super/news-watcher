@@ -2,8 +2,9 @@ name: News Watcher
 
 on:
   schedule:
-    # 每 5 分钟跑一次（UTC 时间，仓库已改为 public，Actions 分钟数不限）
-    - cron: "*/5 * * * *"
+    # 每 15 分钟跑一次（UTC 时间，仓库已改为 public，Actions 分钟数不限）
+    # 之前是 */5，push 太频繁会和 GitHub Pages 的构建队列打架，导致 news-digest 页面时不时 404
+    - cron: "*/15 * * * *"
   workflow_dispatch:
     inputs:
       force_test_push:
