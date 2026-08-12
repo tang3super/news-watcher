@@ -408,7 +408,7 @@ def write_digest_page(html_content):
 
 # ---------------- 出口 2：tang3super.github.io「宏观交易」板块下的文章 ----------------
 
-def build_site_front_matter(store, week_label, today_str):
+def build_site_front_matter(store, week_label, today_str, now_str):
     by_topic = group_sorted_by_topic(store)
 
     topics_data = []
@@ -439,15 +439,15 @@ def build_site_front_matter(store, week_label, today_str):
         "date": today_str,
         "summary": f"{week_label}监控",
         "week_label": f"{week_label}监控",
-        "last_updated": today_str,
+        "last_updated": now_str,
         "refresh_note": REFRESH_NOTE,
         "topics": topics_data,
         "disclaimer": "仅供学习交流，不构成投资建议",
     }
 
 
-def render_site_markdown(store, week_label, today_str):
-    front_matter = build_site_front_matter(store, week_label, today_str)
+def render_site_markdown(store, week_label, today_str, now_str):
+    front_matter = build_site_front_matter(store, week_label, today_str, now_str)
     yaml_text = yaml.safe_dump(front_matter, allow_unicode=True, sort_keys=False, width=1000)
     return f"---\n{yaml_text}---\n"
 
@@ -514,14 +514,22 @@ def main():
     week_label = week_label_for(now_bj)
     today_str = now_bj.strftime("%Y-%m-%d")
 
-    # 存档只在真的变化时（有新条目，或者跨周清空了）才重新渲染两个出口，没变化就跳过
+    # 聚合存档只在真的变化时（有新条目，或者跨周清空了）才重新渲染自己那个聚合页
     store, changed = update_digest_store(matched, cutoff_bj)
     if changed or not os.path.exists(DOCS_FILE):
         write_digest_page(render_digest_page(store, week_label))
-        write_site_markdown(render_site_markdown(store, week_label, today_str))
         print(f"聚合页面已更新（{week_label}，共 {len(store)} 条）。")
     else:
-        print("聚合存档无变化，跳过页面重新生成。")
+        print("聚合存档无变化，跳过聚合页面重新生成。")
+
+    # 站点那篇「新闻监控」文章每次运行都强制重新同步，不再等"有新条目才推"。
+    # 原因：如果只在内容变化时才 push，遇到新闻稀少的时段（比如凌晨）会长时间没有
+    # 新提交，而 GitHub Pages 偶尔会出现"构建标记成功但页面没真正发布"的平台
+    # 抽风，这个坏状态要等下一次构建才会被覆盖修正——没有新提交就一直卡着 404。
+    # 这篇文章是对外正式展示的页面，不能靠人工发现了再手动触发修复，所以每轮都
+    # 无条件同步一次，把"下一次自愈"的等待时间从"不确定"收窄到"下一次调度"。
+    now_str = now_bj.strftime("%Y-%m-%d %H:%M")
+    write_site_markdown(render_site_markdown(store, week_label, today_str, now_str))
 
     if not matched:
         print("本轮没有命中关键词的新条目。")
