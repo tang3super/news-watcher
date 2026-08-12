@@ -56,12 +56,12 @@ jobs:
             exit 0
           fi
           git clone --depth=1 "https://x-access-token:${SITE_REPO_TOKEN}@github.com/tang3super/tang3super.github.io.git" site_repo
-          mkdir -p site_repo/_macro_trade
-          cp site_news_digest.md site_repo/_macro_trade/news-digest.md
+          mkdir -p site_repo/macro-trade
+          cp site_news_digest.md site_repo/macro-trade/news-digest.md
           cd site_repo
           git config user.name "news-watcher-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add _macro_trade/news-digest.md
+          git add macro-trade/news-digest.md
           if ! git diff --staged --quiet; then
             git commit -m "sync news-digest article"
             git push
